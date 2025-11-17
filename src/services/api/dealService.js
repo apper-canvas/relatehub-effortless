@@ -1,67 +1,175 @@
-import dealsData from "@/services/mockData/deals.json";
+import { getApperClient } from "@/services/apperClient";
 
 class DealService {
   constructor() {
-    this.deals = [...dealsData];
+    this.apperClient = null;
   }
 
-  async delay() {
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 300 + 200));
+  getClient() {
+    if (!this.apperClient) {
+      this.apperClient = getApperClient();
+    }
+    return this.apperClient;
   }
 
-  async getAll() {
-    await this.delay();
-    return [...this.deals];
+async getAll() {
+    try {
+      const client = this.getClient();
+      if (!client) {
+        throw new Error('ApperClient not initialized');
+      }
+
+      const response = await client.fetchRecords('deal_c', {
+        fields: [
+          { field: { Name: 'title_c' } },
+          { field: { Name: 'value_c' } },
+          { field: { Name: 'stage_c' } },
+          { field: { Name: 'probability_c' } },
+          { field: { Name: 'expectedCloseDate_c' } },
+          { field: { Name: 'contactId_c' } }
+        ],
+        pagingInfo: { limit: 1000, offset: 0 }
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to fetch deals');
+      }
+
+      return response.data || [];
+    } catch (error) {
+      console.error('DealService.getAll error:', error);
+      throw error;
+    }
   }
 
   async getById(id) {
-    await this.delay();
-    const deal = this.deals.find(deal => deal.Id === parseInt(id));
-    if (!deal) {
-      throw new Error(`Deal with Id ${id} not found`);
+    try {
+      const client = this.getClient();
+      if (!client) {
+        throw new Error('ApperClient not initialized');
+      }
+
+      const response = await client.getRecordById('deal_c', parseInt(id), {
+        fields: [
+          { field: { Name: 'title_c' } },
+          { field: { Name: 'value_c' } },
+          { field: { Name: 'stage_c' } },
+          { field: { Name: 'probability_c' } },
+          { field: { Name: 'expectedCloseDate_c' } },
+          { field: { Name: 'contactId_c' } }
+        ]
+      });
+
+      if (!response.success || !response.data) {
+        throw new Error(`Deal with Id ${id} not found`);
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error('DealService.getById error:', error);
+      throw error;
     }
-    return { ...deal };
   }
 
-  async create(dealData) {
-    await this.delay();
-    const maxId = this.deals.length > 0 ? Math.max(...this.deals.map(d => d.Id)) : 0;
-    const newDeal = {
-      Id: maxId + 1,
-      ...dealData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    this.deals.push(newDeal);
-    return { ...newDeal };
+async create(dealData) {
+    try {
+      const client = this.getClient();
+      if (!client) {
+        throw new Error('ApperClient not initialized');
+      }
+
+      const recordData = {
+        title_c: dealData.title_c || dealData.title,
+        value_c: dealData.value_c !== undefined ? dealData.value_c : dealData.value,
+        stage_c: dealData.stage_c || dealData.stage || 'Lead',
+        probability_c: dealData.probability_c !== undefined ? dealData.probability_c : dealData.probability,
+        expectedCloseDate_c: dealData.expectedCloseDate_c || dealData.expectedCloseDate,
+        contactId_c: dealData.contactId_c || dealData.contactId
+      };
+
+      const response = await client.createRecord('deal_c', {
+        records: [recordData]
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to create deal');
+      }
+
+      if (response.results?.[0]?.success) {
+        return response.results[0].data;
+      }
+
+      throw new Error(response.results?.[0]?.message || 'Failed to create deal');
+    } catch (error) {
+      console.error('DealService.create error:', error);
+      throw error;
+    }
   }
 
   async update(id, dealData) {
-    await this.delay();
-    const index = this.deals.findIndex(deal => deal.Id === parseInt(id));
-    if (index === -1) {
-      throw new Error(`Deal with Id ${id} not found`);
-    }
-    
-    this.deals[index] = {
-      ...this.deals[index],
-      ...dealData,
-      Id: parseInt(id),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    return { ...this.deals[index] };
-  }
+    try {
+      const client = this.getClient();
+      if (!client) {
+        throw new Error('ApperClient not initialized');
+      }
+
+      const recordData = {
+        Id: parseInt(id)
+      };
+
+      if (dealData.title_c !== undefined) recordData.title_c = dealData.title_c;
+      if (dealData.title !== undefined) recordData.title_c = dealData.title;
+      if (dealData.value_c !== undefined) recordData.value_c = dealData.value_c;
+      if (dealData.value !== undefined) recordData.value_c = dealData.value;
+      if (dealData.stage_c !== undefined) recordData.stage_c = dealData.stage_c;
+      if (dealData.stage !== undefined) recordData.stage_c = dealData.stage;
+      if (dealData.probability_c !== undefined) recordData.probability_c = dealData.probability_c;
+      if (dealData.probability !== undefined) recordData.probability_c = dealData.probability;
+      if (dealData.expectedCloseDate_c !== undefined) recordData.expectedCloseDate_c = dealData.expectedCloseDate_c;
+      if (dealData.expectedCloseDate !== undefined) recordData.expectedCloseDate_c = dealData.expectedCloseDate;
+      if (dealData.contactId_c !== undefined) recordData.contactId_c = dealData.contactId_c;
+      if (dealData.contactId !== undefined) recordData.contactId_c = dealData.contactId;
+
+      const response = await client.updateRecord('deal_c', {
+        records: [recordData]
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to update deal');
+      }
+
+      if (response.results?.[0]?.success) {
+        return response.results[0].data;
+      }
+
+      throw new Error(response.results?.[0]?.message || 'Failed to update deal');
+    } catch (error) {
+      console.error('DealService.update error:', error);
+      throw error;
+}
 
   async delete(id) {
-    await this.delay();
-    const index = this.deals.findIndex(deal => deal.Id === parseInt(id));
-    if (index === -1) {
-      throw new Error(`Deal with Id ${id} not found`);
+
+async delete(id) {
+    try {
+      const client = this.getClient();
+      if (!client) {
+        throw new Error('ApperClient not initialized');
+      }
+
+      const response = await client.deleteRecord('deal_c', {
+        RecordIds: [parseInt(id)]
+      });
+
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to delete deal');
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('DealService.delete error:', error);
+      throw error;
     }
-    
-    const deletedDeal = this.deals.splice(index, 1)[0];
-    return { ...deletedDeal };
   }
 }
 

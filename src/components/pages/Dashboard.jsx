@@ -50,17 +50,18 @@ try {
         alertService.getAll(),
       ]);
 
-      // Calculate stats
-      const activeDeals = deals.filter(deal => !["Won", "Lost"].includes(deal.stage));
-      const pipelineValue = activeDeals.reduce((sum, deal) => sum + deal.value, 0);
-      const completedTasks = tasks.filter(task => task.completed).length;
-
-      setStats({
-        totalContacts: contacts.length,
-        totalDeals: activeDeals.length,
-        pipelineValue,
-        completedTasks,
+// Calculate stats
+      const activeDeals = deals.filter(deal => {
+        const stage = deal.stage_c || deal.stage;
+        return !["Won", "Lost"].includes(stage);
       });
+      const pipelineValue = activeDeals.reduce((sum, deal) => {
+        const value = deal.value_c !== undefined ? deal.value_c : deal.value;
+        return sum + (value || 0);
+      }, 0);
+      const completedTasks = tasks.filter(task => {
+        return task.completed_c !== undefined ? task.completed_c : task.completed;
+      }).length;
 
       // Calculate chart data
       const chartMetrics = calculateChartData(deals);
@@ -88,27 +89,40 @@ try {
     for (let i = 5; i >= 0; i--) {
       const date = subDays(new Date(), i * 30);
       months.push(format(date, 'MMM'));
-      const monthDeals = deals.filter(deal => 
-        new Date(deal.createdAt) <= date && !["Won", "Lost"].includes(deal.stage)
-      );
+const monthDeals = deals.filter(deal => {
+        const createdAt = deal.createdAt || new Date().toISOString();
+        const stage = deal.stage_c || deal.stage;
+        return new Date(createdAt) <= date && !["Won", "Lost"].includes(stage);
+      });
       pipelineValues.push(monthDeals.reduce((sum, deal) => sum + deal.value, 0));
     }
 
     // Deal Stages Distribution
-    const stageGroups = deals.reduce((acc, deal) => {
-      acc[deal.stage] = (acc[deal.stage] || 0) + 1;
+const stageGroups = deals.reduce((acc, deal) => {
+      const stage = deal.stage_c || deal.stage;
+      acc[stage] = (acc[stage] || 0) + 1;
       return acc;
     }, {});
 
-    // Win Rate Analysis
-    const totalClosed = deals.filter(deal => ["Won", "Lost"].includes(deal.stage)).length;
-    const won = deals.filter(deal => deal.stage === "Won").length;
-    const lost = deals.filter(deal => deal.stage === "Lost").length;
-    
-    // Deal Progression Funnel
-    const stages = ["Lead", "Qualified", "Proposal", "Negotiation", "Won"];
+    // Win rate
+    const totalClosed = deals.filter(deal => {
+      const stage = deal.stage_c || deal.stage;
+      return ["Won", "Lost"].includes(stage);
+    }).length;
+    const won = deals.filter(deal => {
+      const stage = deal.stage_c || deal.stage;
+      return stage === "Won";
+    }).length;
+    const lost = deals.filter(deal => {
+      const stage = deal.stage_c || deal.stage;
+      return stage === "Lost";
+    }).length;
+const stages = ["Lead", "Qualified", "Proposal", "Negotiation", "Won"];
     const funnelData = stages.map(stage => 
-      deals.filter(deal => deal.stage === stage).length
+      deals.filter(deal => {
+        const dealStage = deal.stage_c || deal.stage;
+        return dealStage === stage;
+      }).length
     );
 
     return {

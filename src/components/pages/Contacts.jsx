@@ -53,13 +53,18 @@ const [selectedContact, setSelectedContact] = useState(null);
       return;
     }
 
-    const filtered = contacts.filter(contact => {
+const filtered = contacts.filter(contact => {
       const searchLower = searchTerm.toLowerCase();
+      const name = contact.name_c || contact.name;
+      const company = contact.company_c || contact.company;
+      const email = contact.email_c || contact.email;
+      const tags = contact.tags_c || contact.tags || [];
+      
       return (
-        contact.name.toLowerCase().includes(searchLower) ||
-        contact.company.toLowerCase().includes(searchLower) ||
-        contact.email.toLowerCase().includes(searchLower) ||
-        (contact.tags && contact.tags.some(tag => 
+        name.toLowerCase().includes(searchLower) ||
+        company.toLowerCase().includes(searchLower) ||
+        email.toLowerCase().includes(searchLower) ||
+        (tags && tags.some && tags.some(tag => 
           tag.toLowerCase().includes(searchLower)
         ))
       );
@@ -108,30 +113,46 @@ const [selectedContact, setSelectedContact] = useState(null);
   const handleSaveContact = async (contactData) => {
     try {
       if (selectedContact) {
-        await contactService.update(selectedContact.Id, contactData);
+const updatePayload = {
+          name_c: contactData.name,
+          company_c: contactData.company,
+          email_c: contactData.email,
+          phone_c: contactData.phone,
+          tags_c: contactData.tags,
+          notes_c: contactData.notes
+        };
+        await contactService.update(selectedContact.Id, updatePayload);
         await activityService.create({
-          contactId: selectedContact.Id,
-          dealId: null,
-          type: "note",
-          description: `Contact updated: ${contactData.name}`,
-          timestamp: new Date().toISOString(),
+          contactId_c: selectedContact.Id,
+          dealId_c: null,
+          type_c: "note",
+          description_c: `Contact updated: ${contactData.name}`,
+          timestamp_c: new Date().toISOString(),
         });
         
         setContacts(prev =>
           prev.map(contact =>
             contact.Id === selectedContact.Id
-              ? { ...contact, ...contactData, updatedAt: new Date().toISOString() }
+              ? { ...contact, ...updatePayload, updatedAt: new Date().toISOString() }
               : contact
           )
         );
       } else {
-        const newContact = await contactService.create(contactData);
+        const createPayload = {
+          name_c: contactData.name,
+          company_c: contactData.company,
+          email_c: contactData.email,
+          phone_c: contactData.phone,
+          tags_c: contactData.tags,
+          notes_c: contactData.notes
+        };
+        const newContact = await contactService.create(createPayload);
         await activityService.create({
-          contactId: newContact.Id,
-          dealId: null,
-          type: "note",
-          description: `New contact added: ${contactData.name}`,
-          timestamp: new Date().toISOString(),
+          contactId_c: newContact.Id,
+          dealId_c: null,
+          type_c: "note",
+          description_c: `New contact added: ${contactData.name}`,
+          timestamp_c: new Date().toISOString(),
         });
         
         setContacts(prev => [...prev, newContact]);

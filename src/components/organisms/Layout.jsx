@@ -1,14 +1,14 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
-import Header from "@/components/organisms/Header";
-import ContactModal from "@/components/organisms/ContactModal";
-import DealModal from "@/components/organisms/DealModal";
-import TaskModal from "@/components/organisms/TaskModal";
 import { contactService } from "@/services/api/contactService";
 import { dealService } from "@/services/api/dealService";
 import { taskService } from "@/services/api/taskService";
 import { activityService } from "@/services/api/activityService";
 import { alertService } from "@/services/api/alertService";
+import ContactModal from "@/components/organisms/ContactModal";
+import TaskModal from "@/components/organisms/TaskModal";
+import DealModal from "@/components/organisms/DealModal";
+import Header from "@/components/organisms/Header";
 const Layout = () => {
   const [modals, setModals] = useState({
     contact: { isOpen: false, data: null },
@@ -33,47 +33,79 @@ const Layout = () => {
   const handleSaveContact = async (contactData) => {
     const contact = modals.contact.data;
     
-    if (contact) {
-      await contactService.update(contact.Id, contactData);
+if (contact) {
+      const updatePayload = {
+        name_c: contactData.name,
+        company_c: contactData.company,
+        email_c: contactData.email,
+        phone_c: contactData.phone,
+        tags_c: contactData.tags,
+        notes_c: contactData.notes
+      };
+      await contactService.update(contact.Id, updatePayload);
       await activityService.create({
-        contactId: contact.Id,
-        dealId: null,
-        type: "note",
-        description: `Contact updated: ${contactData.name}`,
-        timestamp: new Date().toISOString(),
+        contactId_c: contact.Id,
+        dealId_c: null,
+        type_c: "note",
+        description_c: `Contact updated: ${contactData.name}`,
+        timestamp_c: new Date().toISOString(),
       });
     } else {
-      const newContact = await contactService.create(contactData);
+      const createPayload = {
+        name_c: contactData.name,
+        company_c: contactData.company,
+        email_c: contactData.email,
+        phone_c: contactData.phone,
+        tags_c: contactData.tags,
+        notes_c: contactData.notes
+      };
+      const newContact = await contactService.create(createPayload);
+const newContact = await contactService.create(createPayload);
       await activityService.create({
-        contactId: newContact.Id,
-        dealId: null,
-        type: "note",
-        description: `New contact added: ${contactData.name}`,
-        timestamp: new Date().toISOString(),
+        contactId_c: newContact.Id,
+        dealId_c: null,
+        type_c: "note",
+        description_c: `New contact added: ${contactData.name}`,
+        timestamp_c: new Date().toISOString(),
       });
-    }
   };
 
   const handleSaveDeal = async (dealData) => {
     const deal = modals.deal.data;
     
-    if (deal) {
-      await dealService.update(deal.Id, dealData);
+if (deal) {
+      const updatePayload = {
+        title_c: dealData.title,
+        value_c: dealData.value,
+        stage_c: dealData.stage,
+        probability_c: dealData.probability,
+        expectedCloseDate_c: dealData.expectedCloseDate,
+        contactId_c: parseInt(dealData.contactId)
+      };
+      await dealService.update(deal.Id, updatePayload);
       await activityService.create({
-        contactId: parseInt(dealData.contactId),
-        dealId: deal.Id,
-        type: "deal",
-        description: `Deal updated: ${dealData.title} - $${dealData.value}`,
-        timestamp: new Date().toISOString(),
+        contactId_c: parseInt(dealData.contactId),
+        dealId_c: deal.Id,
+        type_c: "deal",
+        description_c: `Deal updated: ${dealData.title} - $${dealData.value}`,
+        timestamp_c: new Date().toISOString(),
       });
     } else {
-      const newDeal = await dealService.create(dealData);
+      const createPayload = {
+        title_c: dealData.title,
+        value_c: dealData.value,
+        stage_c: dealData.stage,
+        probability_c: dealData.probability,
+        expectedCloseDate_c: dealData.expectedCloseDate,
+        contactId_c: parseInt(dealData.contactId)
+      };
+      const newDeal = await dealService.create(createPayload);
       await activityService.create({
-        contactId: parseInt(dealData.contactId),
-        dealId: newDeal.Id,
-        type: "deal",
-        description: `New deal created: ${dealData.title} - $${dealData.value}`,
-        timestamp: new Date().toISOString(),
+        contactId_c: parseInt(dealData.contactId),
+        dealId_c: newDeal.Id,
+        type_c: "deal",
+        description_c: `New deal created: ${dealData.title} - $${dealData.value}`,
+        timestamp_c: new Date().toISOString(),
       });
     }
   };
@@ -81,23 +113,35 @@ const Layout = () => {
   const handleSaveTask = async (taskData) => {
     const task = modals.task.data;
     
-    if (task) {
-      await taskService.update(task.Id, taskData);
+if (task) {
+      const updatePayload = {
+        title_c: taskData.title,
+        dueDate_c: taskData.dueDate,
+        contactId_c: parseInt(taskData.contactId),
+        completed_c: taskData.completed
+      };
+      await taskService.update(task.Id, updatePayload);
       await activityService.create({
-        contactId: parseInt(taskData.contactId),
-        dealId: null,
-        type: "task",
-        description: `Task updated: ${taskData.title}`,
-        timestamp: new Date().toISOString(),
+        contactId_c: parseInt(taskData.contactId),
+        dealId_c: null,
+        type_c: "task",
+        description_c: `Task updated: ${taskData.title}`,
+        timestamp_c: new Date().toISOString(),
       });
     } else {
-      const newTask = await taskService.create(taskData);
+      const createPayload = {
+        title_c: taskData.title,
+        dueDate_c: taskData.dueDate,
+        contactId_c: parseInt(taskData.contactId),
+        completed_c: false
+      };
+      const newTask = await taskService.create(createPayload);
       await activityService.create({
-        contactId: parseInt(taskData.contactId),
-        dealId: null,
-        type: "task",
-        description: `New task created: ${taskData.title}`,
-        timestamp: new Date().toISOString(),
+        contactId_c: parseInt(taskData.contactId),
+        dealId_c: null,
+        type_c: "task",
+        description_c: `New task created: ${taskData.title}`,
+        timestamp_c: new Date().toISOString(),
       });
     }
   };

@@ -38,13 +38,13 @@ const DealModal = ({ isOpen, onClose, deal, onSave }) => {
 
   useEffect(() => {
     if (deal) {
-      setFormData({
-        title: deal.title || "",
-        contactId: deal.contactId || "",
-        value: deal.value?.toString() || "",
-        stage: deal.stage || "Lead",
-        probability: deal.probability?.toString() || "",
-        expectedCloseDate: deal.expectedCloseDate || "",
+setFormData({
+        title: deal.title_c || deal.title || "",
+        contactId: deal.contactId_c || deal.contactId || "",
+        value: (deal.value_c || deal.value)?.toString() || "",
+        stage: deal.stage_c || deal.stage || "Lead",
+        probability: (deal.probability_c || deal.probability)?.toString() || "",
+        expectedCloseDate: deal.expectedCloseDate_c || deal.expectedCloseDate || "",
       });
     } else {
       setFormData({

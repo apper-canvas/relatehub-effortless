@@ -3,11 +3,16 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import ApperIcon from "@/components/ApperIcon";
 import Button from "@/components/atoms/Button";
-
+import { useAuth } from "@/layouts/Root";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
+const navigate = useNavigate();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+  };
 
   const navigation = [
     { name: "Dashboard", path: "/", icon: "LayoutDashboard" },
@@ -55,15 +60,23 @@ const Header = () => {
 
           {/* Quick Add Button */}
 <div className="flex items-center space-x-4">
+              {/* Logout Button */}
+              <Button
+                onClick={handleLogout}
+                variant="ghost"
+                className="text-sm"
+              >
+                Logout
+              </Button>
 
-            {/* Mobile Menu Button */}
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors"
-            >
-              <ApperIcon name={isMenuOpen ? "X" : "Menu"} className="h-6 w-6" />
-            </button>
-          </div>
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="md:hidden p-2 rounded-lg text-gray-600 hover:text-primary hover:bg-gray-50 transition-colors"
+              >
+                <ApperIcon name={isMenuOpen ? "X" : "Menu"} className="h-6 w-6" />
+              </button>
+            </div>
         </div>
 
         {/* Mobile Navigation */}

@@ -20,13 +20,13 @@ const ContactModal = ({ isOpen, onClose, contact, onSave }) => {
 
   useEffect(() => {
     if (contact) {
-      setFormData({
-        name: contact.name || "",
-        company: contact.company || "",
-        email: contact.email || "",
-        phone: contact.phone || "",
-        tags: contact.tags ? contact.tags.join(", ") : "",
-        notes: contact.notes || "",
+setFormData({
+        name: contact.name_c || contact.name || "",
+        company: contact.company_c || contact.company || "",
+        email: contact.email_c || contact.email || "",
+        phone: contact.phone_c || contact.phone || "",
+        tags: contact.tags_c ? (Array.isArray(contact.tags_c) ? contact.tags_c.join(", ") : contact.tags_c) : (contact.tags ? contact.tags.join(", ") : ""),
+        notes: contact.notes_c || contact.notes || "",
       });
     } else {
       setFormData({

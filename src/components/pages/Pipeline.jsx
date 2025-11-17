@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import ApperIcon from "@/components/ApperIcon";
-import Button from "@/components/atoms/Button";
-import DealCard from "@/components/molecules/DealCard";
-import DealModal from "@/components/organisms/DealModal";
-import Loading from "@/components/ui/Loading";
-import Error from "@/components/ui/Error";
-import Empty from "@/components/ui/Empty";
+import React, { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { dealService } from "@/services/api/dealService";
 import { contactService } from "@/services/api/contactService";
 import { activityService } from "@/services/api/activityService";
 import { toast } from "react-toastify";
+import ApperIcon from "@/components/ApperIcon";
+import DealCard from "@/components/molecules/DealCard";
+import Loading from "@/components/ui/Loading";
+import Empty from "@/components/ui/Empty";
+import Error from "@/components/ui/Error";
+import DealModal from "@/components/organisms/DealModal";
+import Button from "@/components/atoms/Button";
 
 const Pipeline = () => {
   const [deals, setDeals] = useState([]);
@@ -54,17 +54,21 @@ const Pipeline = () => {
     }
   };
 
-  const getDealsByStage = (stage) => {
-    return deals.filter(deal => deal.stage === stage);
+const getDealsByStage = (stage) => {
+    return deals.filter(deal => {
+      const dealStage = deal.stage_c || deal.stage;
+      return dealStage === stage;
+    });
   };
 
   const getContactById = (contactId) => {
+    if (!contactId) return null;
     return contacts.find(contact => contact.Id === contactId);
   };
 
   const getStageTotal = (stage) => {
     const stageDeals = getDealsByStage(stage);
-    return stageDeals.reduce((sum, deal) => sum + deal.value, 0);
+    return stageDeals.reduce((sum, deal) => sum + (deal.value_c || deal.value || 0), 0);
   };
 
   const formatCurrency = (value) => {
@@ -89,33 +93,46 @@ const Pipeline = () => {
   const handleSaveDeal = async (dealData) => {
     try {
       if (selectedDeal) {
-        await dealService.update(selectedDeal.Id, dealData);
+const updatePayload = {
+          title_c: dealData.title,
+          value_c: dealData.value,
+          stage_c: dealData.stage,
+          probability_c: dealData.probability,
+          expectedCloseDate_c: dealData.expectedCloseDate,
+          contactId_c: parseInt(dealData.contactId)
+        };
+        await dealService.update(selectedDeal.Id, updatePayload);
         await activityService.create({
-          contactId: parseInt(dealData.contactId),
-          dealId: selectedDeal.Id,
-          type: "deal",
-          description: `Deal updated: ${dealData.title} - $${dealData.value}`,
-          timestamp: new Date().toISOString(),
+          contactId_c: parseInt(dealData.contactId),
+          dealId_c: selectedDeal.Id,
+          type_c: "deal",
+          description_c: `Deal updated: ${dealData.title} - $${dealData.value}`,
+          timestamp_c: new Date().toISOString(),
         });
         
         setDeals(prev =>
           prev.map(deal =>
             deal.Id === selectedDeal.Id
-              ? { ...deal, ...dealData, contactId: parseInt(dealData.contactId), updatedAt: new Date().toISOString() }
+              ? { ...deal, ...updatePayload, updatedAt: new Date().toISOString() }
               : deal
           )
         );
       } else {
-        const newDeal = await dealService.create({
-          ...dealData,
-          contactId: parseInt(dealData.contactId),
-        });
+        const createPayload = {
+          title_c: dealData.title,
+          value_c: dealData.value,
+          stage_c: dealData.stage,
+          probability_c: dealData.probability,
+          expectedCloseDate_c: dealData.expectedCloseDate,
+          contactId_c: parseInt(dealData.contactId)
+        };
+        const newDeal = await dealService.create(createPayload);
         await activityService.create({
-          contactId: parseInt(dealData.contactId),
-          dealId: newDeal.Id,
-          type: "deal",
-          description: `New deal created: ${dealData.title} - $${dealData.value}`,
-          timestamp: new Date().toISOString(),
+          contactId_c: parseInt(dealData.contactId),
+          dealId_c: newDeal.Id,
+          type_c: "deal",
+          description_c: `New deal created: ${dealData.title} - $${dealData.value}`,
+          timestamp_c: new Date().toISOString(),
         });
         
         setDeals(prev => [...prev, newDeal]);
@@ -141,23 +158,27 @@ const Pipeline = () => {
     setDraggedDeal(null);
   };
 
-  const handleStageDrop = async (targetStage) => {
-    if (!draggedDeal || draggedDeal.stage === targetStage) return;
+const handleStageDrop = async (targetStage) => {
+    const currentStage = draggedDeal?.stage_c || draggedDeal?.stage;
+    if (!draggedDeal || currentStage === targetStage) return;
 
     try {
-      await dealService.update(draggedDeal.Id, { stage: targetStage });
+      const contactId = draggedDeal.contactId_c || draggedDeal.contactId;
+      const dealTitle = draggedDeal.title_c || draggedDeal.title;
+      
+      await dealService.update(draggedDeal.Id, { stage_c: targetStage });
       await activityService.create({
-        contactId: draggedDeal.contactId,
-        dealId: draggedDeal.Id,
-        type: "deal",
-        description: `Deal moved to ${targetStage}: ${draggedDeal.title}`,
-        timestamp: new Date().toISOString(),
+        contactId_c: contactId,
+        dealId_c: draggedDeal.Id,
+        type_c: "deal",
+        description_c: `Deal moved to ${targetStage}: ${dealTitle}`,
+        timestamp_c: new Date().toISOString(),
       });
       
       setDeals(prev =>
         prev.map(deal =>
           deal.Id === draggedDeal.Id
-            ? { ...deal, stage: targetStage, updatedAt: new Date().toISOString() }
+            ? { ...deal, stage_c: targetStage, updatedAt: new Date().toISOString() }
             : deal
         )
       );

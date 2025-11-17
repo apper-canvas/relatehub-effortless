@@ -26,10 +26,10 @@ const TaskModal = ({ isOpen, onClose, task, onSave }) => {
 
   useEffect(() => {
     if (task) {
-      setFormData({
-        title: task.title || "",
-        contactId: task.contactId || "",
-        dueDate: task.dueDate || "",
+setFormData({
+        title: task.title_c || task.title || "",
+        contactId: task.contactId_c || task.contactId || "",
+        dueDate: task.dueDate_c || task.dueDate || "",
       });
     } else {
       setFormData({

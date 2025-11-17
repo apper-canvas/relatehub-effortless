@@ -1,7 +1,9 @@
-import { taskService } from './taskService';
-import { activityService } from './activityService';
-import { contactService } from './contactService';
-import { isToday, isTomorrow, isAfter, subDays, format } from 'date-fns';
+import { taskService } from "./taskService";
+import { activityService } from "./activityService";
+import { contactService } from "./contactService";
+import { format, isAfter, isToday, isTomorrow, subDays } from "date-fns";
+import React from "react";
+import Error from "@/components/ui/Error";
 
 class AlertService {
   constructor() {
@@ -26,43 +28,45 @@ class AlertService {
       const alerts = [];
       const now = new Date();
 
-      // Task-based alerts
+// Task-based alerts
       tasks.forEach(task => {
-        if (task.completed) return;
+        const completed = task.completed_c !== undefined ? task.completed_c : task.completed;
+        if (completed) return;
 
-        const dueDate = new Date(task.dueDate);
+        const dueDate = new Date(task.dueDate_c || task.dueDate);
         const alertKey = `task-${task.Id}`;
 
         if (this.dismissedAlerts.has(alertKey)) return;
 
         // Overdue tasks
         if (isAfter(now, dueDate)) {
+          const title = task.title_c || task.title;
           alerts.push({
             Id: `overdue-${task.Id}`,
             type: 'task_overdue',
             priority: 'high',
             title: 'Overdue Task',
-            message: `"${task.title}" was due ${format(dueDate, 'MMM d, yyyy')}`,
+            message: `"${title}" was due ${format(dueDate, 'MMM d, yyyy')}`,
             taskId: task.Id,
             task: task,
-            timestamp: task.dueDate,
+            timestamp: task.dueDate_c || task.dueDate,
             actions: [
               { type: 'complete', label: 'Mark Complete' },
-              { type: 'dismiss', label: 'Dismiss' }
-            ]
+]
           });
         }
         // Tasks due today
         else if (isToday(dueDate)) {
+          const title = task.title_c || task.title;
           alerts.push({
             Id: `due-today-${task.Id}`,
             type: 'task_due_today',
             priority: 'medium',
             title: 'Due Today',
-            message: `"${task.title}" is due today`,
+            message: `"${title}" is due today`,
             taskId: task.Id,
             task: task,
-            timestamp: task.dueDate,
+            timestamp: task.dueDate_c || task.dueDate,
             actions: [
               { type: 'complete', label: 'Mark Complete' },
               { type: 'dismiss', label: 'Dismiss' }
@@ -71,15 +75,16 @@ class AlertService {
         }
         // Tasks due tomorrow
         else if (isTomorrow(dueDate)) {
+          const title = task.title_c || task.title;
           alerts.push({
             Id: `due-tomorrow-${task.Id}`,
             type: 'task_due_tomorrow',
             priority: 'low',
             title: 'Due Tomorrow',
-            message: `"${task.title}" is due tomorrow`,
+            message: `"${title}" is due tomorrow`,
             taskId: task.Id,
             task: task,
-            timestamp: task.dueDate,
+            timestamp: task.dueDate_c || task.dueDate,
             actions: [
               { type: 'dismiss', label: 'Dismiss' }
             ]
@@ -99,10 +104,13 @@ class AlertService {
       // Group by contact and suggest follow-ups for recent activities
       const contactActivityMap = {};
       recentActivities.forEach(activity => {
-        if (!contactActivityMap[activity.contactId]) {
-          contactActivityMap[activity.contactId] = [];
+        const contactId = activity.contact_id_c || activity.contact_id;
+        if (contactId) {
+          if (!contactActivityMap[contactId]) {
+            contactActivityMap[contactId] = [];
+          }
+          contactActivityMap[contactId].push(activity);
         }
-        contactActivityMap[activity.contactId].push(activity);
       });
 
       Object.entries(contactActivityMap).forEach(([contactId, contactActivities]) => {
@@ -111,25 +119,26 @@ class AlertService {
 
         const contact = contacts.find(c => c.Id === parseInt(contactId));
         const latestActivity = contactActivities[0];
+        const latestActivity = contactActivities[0];
         
         if (contact && contactActivities.length > 0) {
+          const contactName = contact.name_c || contact.name;
           alerts.push({
             Id: `follow-up-${contactId}`,
             type: 'contact_follow_up',
             priority: 'medium',
             title: 'Follow-up Needed',
-            message: `${contact.name} - ${contactActivities.length} recent ${contactActivities.length === 1 ? 'activity' : 'activities'}`,
+            message: `${contactName} - ${contactActivities.length} recent ${contactActivities.length === 1 ? 'activity' : 'activities'}`,
             contactId: parseInt(contactId),
             contact: contact,
             activities: contactActivities,
-            timestamp: latestActivity.timestamp,
+            timestamp: latestActivity.timestamp_c || latestActivity.timestamp,
             actions: [
               { type: 'dismiss', label: 'Dismiss' }
             ]
           });
         }
       });
-
       // Sort by priority and timestamp
       const priorityOrder = { high: 0, medium: 1, low: 2 };
       alerts.sort((a, b) => {
