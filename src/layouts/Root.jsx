@@ -143,7 +143,11 @@ const logout = async () => {
 
   // Show loading spinner until auth is initialized
   if (!authInitialized) {
-    return <LoadingSpinner />;
+    return (
+      <AuthContext.Provider value={{ logout, isInitialized }}>
+        <LoadingSpinner />
+      </AuthContext.Provider>
+    );
   }
 
   return (
