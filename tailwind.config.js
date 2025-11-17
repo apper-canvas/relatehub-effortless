@@ -9,7 +9,7 @@ export default {
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
       },
-      colors: {
+colors: {
         primary: '#2563EB',
         secondary: '#475569',
         accent: '#10B981',
@@ -17,7 +17,7 @@ export default {
         background: '#F8FAFC',
         success: '#10B981',
         warning: '#F59E0B',
-error: '#EF4444',
+        error: '#EF4444',
         info: '#3B82F6',
         border: '#E5E7EB',
       },
