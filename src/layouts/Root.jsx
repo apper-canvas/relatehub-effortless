@@ -137,10 +137,9 @@ export default function Root() {
       navigate("/login");
       await window.ApperSDK?.ApperUI?.logout();
     } catch (error) {
-      console.error("Logout failed:", error);
+console.error("Logout failed:", error);
     }
   };
-};
 
   // Show loading spinner until auth is initialized
   if (!authInitialized) {
