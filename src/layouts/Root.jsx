@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { clearUser, setInitialized, setUser } from "@/store/userSlice";
 import { getApperClient } from "@/services/apperClient";
-import Error from "@/components/ui/Error";
+import ErrorComponent from "@/components/ui/Error";
 import { getRouteConfig, verifyRouteAccess } from "@/router/route.utils";
 
 // Auth context for logout functionality
