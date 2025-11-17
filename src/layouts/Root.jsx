@@ -1,9 +1,10 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { useEffect, useState, createContext, useContext } from "react";
-import { setUser, clearUser, setInitialized } from "@/store/userSlice";
-import { getRouteConfig, verifyRouteAccess } from "@/router/route.utils";
+import { useDispatch, useSelector } from "react-redux";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { clearUser, setInitialized, setUser } from "@/store/userSlice";
 import { getApperClient } from "@/services/apperClient";
+import Error from "@/components/ui/Error";
+import { getRouteConfig, verifyRouteAccess } from "@/router/route.utils";
 
 // Auth context for logout functionality
 const AuthContext = createContext(null);
@@ -139,6 +140,7 @@ export default function Root() {
       console.error("Logout failed:", error);
     }
   };
+};
 
   // Show loading spinner until auth is initialized
   if (!authInitialized) {
@@ -146,7 +148,7 @@ export default function Root() {
   }
 
   return (
-    <AuthContext.Provider value={{ logout, isInitialized: authInitialized }}>
+    <AuthContext.Provider value={{ logout, isInitialized }}>
       <Outlet />
     </AuthContext.Provider>
   );
