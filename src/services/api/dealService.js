@@ -142,15 +142,14 @@ async create(dealData) {
         return response.results[0].data;
       }
 
-      throw new Error(response.results?.[0]?.message || 'Failed to update deal');
+throw new Error(response.results?.[0]?.message || 'Failed to update deal');
     } catch (error) {
       console.error('DealService.update error:', error);
       throw error;
-}
+    }
+  }
 
   async delete(id) {
-
-async delete(id) {
     try {
       const client = this.getClient();
       if (!client) {

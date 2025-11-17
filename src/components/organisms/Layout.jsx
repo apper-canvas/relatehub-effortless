@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { contactService } from "@/services/api/contactService";
-import { dealService } from "@/services/api/dealService";
 import { taskService } from "@/services/api/taskService";
 import { activityService } from "@/services/api/activityService";
+import { dealService } from "@/services/api/dealService";
 import { alertService } from "@/services/api/alertService";
 import ContactModal from "@/components/organisms/ContactModal";
 import TaskModal from "@/components/organisms/TaskModal";
@@ -59,15 +59,15 @@ if (contact) {
         tags_c: contactData.tags,
         notes_c: contactData.notes
       };
-      const newContact = await contactService.create(createPayload);
 const newContact = await contactService.create(createPayload);
       await activityService.create({
         contactId_c: newContact.Id,
         dealId_c: null,
         type_c: "note",
         description_c: `New contact added: ${contactData.name}`,
-        timestamp_c: new Date().toISOString(),
+timestamp_c: new Date().toISOString(),
       });
+    }
   };
 
   const handleSaveDeal = async (dealData) => {
@@ -106,6 +106,7 @@ if (deal) {
         type_c: "deal",
         description_c: `New deal created: ${dealData.title} - $${dealData.value}`,
         timestamp_c: new Date().toISOString(),
+timestamp_c: new Date().toISOString(),
       });
     }
   };
@@ -141,7 +142,7 @@ if (task) {
         dealId_c: null,
         type_c: "task",
         description_c: `New task created: ${taskData.title}`,
-        timestamp_c: new Date().toISOString(),
+timestamp_c: new Date().toISOString(),
       });
     }
   };

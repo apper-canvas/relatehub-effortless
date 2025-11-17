@@ -59,13 +59,12 @@ const Tasks = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+};
 
   const filterTasks = () => {
-    let filtered = tasks;
+    let filtered = [...tasks];
 
     // Apply search filter
-// Apply search filter
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
       filtered = filtered.filter(task => {
@@ -81,7 +80,8 @@ const Tasks = () => {
 
     // Apply category filter
     if (filter !== "all") {
-filtered = filtered.filter(task => {
+      const now = new Date();
+      filtered = filtered.filter(task => {
         const dueDate = parseISO(task.dueDate_c || task.dueDate);
         const completed = task.completed_c !== undefined ? task.completed_c : task.completed;
         
@@ -101,7 +101,6 @@ filtered = filtered.filter(task => {
     }
 
     // Sort tasks: overdue first, then by due date
-// Sort tasks: overdue first, then by due date
     filtered.sort((a, b) => {
       if (a.completed !== b.completed) {
         return a.completed ? 1 : -1; // Completed tasks last
@@ -142,12 +141,11 @@ filtered = filtered.filter(task => {
     setSelectedTask(task);
     setIsModalOpen(true);
   };
-
-  const handleDeleteTask = async (taskId) => {
+const handleDeleteTask = async (taskId) => {
     if (!confirm("Are you sure you want to delete this task?")) {
       return;
     }
-try {
+    try {
       const task = tasks.find(t => t.Id === taskId);
       if (!task) {
         toast.error("Task not found");
@@ -171,7 +169,7 @@ try {
       toast.error("Failed to delete task");
       console.error("Delete task error:", error);
     }
-
+  };
 const handleToggleComplete = async (taskId) => {
     const task = tasks.find(t => t.Id === taskId);
     if (!task) return;
@@ -210,7 +208,7 @@ const handleToggleComplete = async (taskId) => {
     }
   };
 
-const handleSaveTask = async (taskData) => {
+  const handleSaveTask = async (taskData) => {
     try {
       if (selectedTask) {
         const updatePayload = {
@@ -220,6 +218,7 @@ const handleSaveTask = async (taskData) => {
           completed_c: taskData.completed
         };
         await taskService.update(selectedTask.Id, updatePayload);
+        await activityService.create({
           contactId_c: parseInt(taskData.contactId),
           dealId_c: null,
           type_c: "task",
@@ -265,13 +264,13 @@ const handleSaveTask = async (taskData) => {
           ? "Task updated successfully!" 
           : "Task added successfully!"
       );
-    } catch (error) {
+} catch (error) {
       toast.error("Failed to save task");
       console.error("Save task error:", error);
     }
   };
 
-const getTaskStats = () => {
+  const getTaskStats = () => {
     const now = new Date();
     const overdue = tasks.filter(task => {
       const completed = task.completed_c !== undefined ? task.completed_c : task.completed;

@@ -116,11 +116,10 @@ class AlertService {
       Object.entries(contactActivityMap).forEach(([contactId, contactActivities]) => {
         const alertKey = `follow-up-${contactId}`;
         if (this.dismissedAlerts.has(alertKey)) return;
+if (this.dismissedAlerts.has(alertKey)) return;
 
         const contact = contacts.find(c => c.Id === parseInt(contactId));
         const latestActivity = contactActivities[0];
-        const latestActivity = contactActivities[0];
-        
         if (contact && contactActivities.length > 0) {
           const contactName = contact.name_c || contact.name;
           alerts.push({
